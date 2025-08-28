@@ -14,7 +14,7 @@ services:
       - --certificatesresolvers.resolver.acme.email=dsarifkulo021@gmail.com
       - --certificatesresolvers.resolver.acme.storage=/letsencrypt/acme.json
     networks:
-      - puremilky-net
+      - gold-net
     ports:
       - 80:80
       - 443:443
@@ -28,24 +28,24 @@ services:
       context: ../admin
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: https://${HOST}/api/v1
+        VITE_API_URL: https://admin.${HOST}/api
         NODE_ENV: production
         VITE_ORDER_FIX_PRICE: $VITE_ORDER_FIX_PRICE
     restart: always
     environment:
-      VITE_API_URL: https://${HOST}/api/v1
+      VITE_API_URL: https://admin.${HOST}/api
       NODE_ENV: production
       VITE_ORDER_FIX_PRICE: $VITE_ORDER_FIX_PRICE
     labels:
       - traefik.enable=true
-      - traefik.http.routers.admin.rule=Host(`${HOST}`) && PathPrefix(`/admin`)
-      - traefik.http.services.admin.loadbalancer.server.port=8080
-      - traefik.http.routers.admin.entrypoints=websecure
-      - traefik.http.routers.admin.tls.certresolver=resolver
+      - traefik.http.routers.bot.rule=Host(`${HOST}`) && PathPrefix(`/`)
+      - traefik.http.services.bot.loadbalancer.server.port=8080
+      - traefik.http.routers.bot.entrypoints=websecure
+      - traefik.http.routers.bot.tls.certresolver=resolver
     networks:
-      - puremilky-net
+      - gold-net
     depends_on:
-      - backend
+      - app
 
   app:
     container_name: app
@@ -89,33 +89,30 @@ services:
       MULTICARD_CALBACK_URL: $MULTICARD_CALBACK_URL
     labels:
       - traefik.enable=true
-      - traefik.http.routers.app.rule=Host(`${HOST}`) && PathPrefix(`/`)
+      - traefik.http.routers.app.rule=Host(`admin.${HOST}`) && PathPrefix(`/`)
       - traefik.http.services.app.loadbalancer.server.port=3000
       - traefik.http.routers.app.entrypoints=websecure
       - traefik.http.routers.app.tls.certresolver=resolver
     networks:
-      - puremilky-net
+      - gold-net
     depends_on:
       - backend
 
-  mongo:
-    image: mongo:6.0
-    container_name: mongo
-    restart: always
-    networks:
-      - puremilky-net
-    ports:
-      - '27017:27017'
+  database:
+    image: postgres:alpine
+    container_name: database
+    env_file:
+      - ~/www/.env
     environment:
-      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
-      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASS}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "${DATABASE_PORT}:5432"
     volumes:
-      - ../../volumes/database:/data/db
-    healthcheck:
-      test: [ "CMD", "mongosh", "--username", $MONGO_INITDB_ROOT_USERNAME, "--password", $MONGO_INITDB_ROOT_PASSWORD, "--eval", "db.adminCommand('ping')" ]
-      interval: 10s
-      timeout: 10s
-      retries: 3
+      - ../volumes/database/:/var/lib/postgresql/data
+    networks:
+      - gold-net
 
 networks:
   gold-net:
