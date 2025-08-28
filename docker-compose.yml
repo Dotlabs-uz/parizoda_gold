@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.9
+    command:
+      - "--providers.docker=true"
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entryPoint.permanent=true
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.resolver.acme.tlschallenge=true
+      - --certificatesresolvers.resolver.acme.email=dsarifkulo021@gmail.com
+      - --certificatesresolvers.resolver.acme.storage=/letsencrypt/acme.json
+    networks:
+      - puremilky-net
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../volumes/letsencrypt:/letsencrypt
+
+  bot:
+    container_name: admin
+    build:
+      context: ../admin
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: https://${HOST}/api/v1
+        NODE_ENV: production
+        VITE_ORDER_FIX_PRICE: $VITE_ORDER_FIX_PRICE
+    restart: always
+    environment:
+      VITE_API_URL: https://${HOST}/api/v1
+      NODE_ENV: production
+      VITE_ORDER_FIX_PRICE: $VITE_ORDER_FIX_PRICE
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.admin.rule=Host(`${HOST}`) && PathPrefix(`/admin`)
+      - traefik.http.services.admin.loadbalancer.server.port=8080
+      - traefik.http.routers.admin.entrypoints=websecure
+      - traefik.http.routers.admin.tls.certresolver=resolver
+    networks:
+      - puremilky-net
+    depends_on:
+      - backend
+
+  app:
+    container_name: app
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        DATABASE_URL: $DATABASE_URL
+        TELEGRAM_BOT_TOKEN: $TELEGRAM_BOT_TOKEN
+        TG_ADMIN_BOT_TOKEN: $TG_ADMIN_BOT_TOKEN
+        TG_SUPERADMIN_ID: $TG_SUPERADMIN_ID
+        OTP_EXPIRATION_MINUTES: $OTP_EXPIRATION_MINUTES
+        ALLOWED_ORIGIN: $ALLOWED_ORIGIN
+        JWT_SECRET: $JWT_SECRET
+        ADMIN_JWT_SECRET: $ADMIN_JWT_SECRET
+        GCS_KEY_BASE64: $GCS_KEY_BASE64
+        GCS_PROJECT_ID: $GCS_PROJECT_ID
+        MULTICARD_URL: $MULTICARD_URL
+        MULTICARD_APP_ID: $MULTICARD_APP_ID
+        MULTICARD_SECRET: $MULTICARD_SECRET
+        MULTICARD_STORE_ID: $MULTICARD_STORE_ID
+        MULTICARD_CALBACK_URL: $MULTICARD_CALBACK_URL
+        NODE_ENV: production
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: $DATABASE_URL
+      TELEGRAM_BOT_TOKEN: $TELEGRAM_BOT_TOKEN
+      TG_ADMIN_BOT_TOKEN: $TG_ADMIN_BOT_TOKEN
+      TG_SUPERADMIN_ID: $TG_SUPERADMIN_ID
+      OTP_EXPIRATION_MINUTES: $OTP_EXPIRATION_MINUTES
+      ALLOWED_ORIGIN: $ALLOWED_ORIGIN
+      JWT_SECRET: $JWT_SECRET
+      ADMIN_JWT_SECRET: $ADMIN_JWT_SECRET
+      GCS_KEY_BASE64: $GCS_KEY_BASE64
+      GCS_PROJECT_ID: $GCS_PROJECT_ID
+      MULTICARD_URL: $MULTICARD_URL
+      MULTICARD_APP_ID: $MULTICARD_APP_ID
+      MULTICARD_SECRET: $MULTICARD_SECRET
+      MULTICARD_STORE_ID: $MULTICARD_STORE_ID
+      MULTICARD_CALBACK_URL: $MULTICARD_CALBACK_URL
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.app.rule=Host(`${HOST}`) && PathPrefix(`/`)
+      - traefik.http.services.app.loadbalancer.server.port=3000
+      - traefik.http.routers.app.entrypoints=websecure
+      - traefik.http.routers.app.tls.certresolver=resolver
+    networks:
+      - puremilky-net
+    depends_on:
+      - backend
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    restart: always
+    networks:
+      - puremilky-net
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+    volumes:
+      - ../../volumes/database:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--username", $MONGO_INITDB_ROOT_USERNAME, "--password", $MONGO_INITDB_ROOT_PASSWORD, "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+networks:
+  gold-net:
+    driver: bridge
