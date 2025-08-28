@@ -58,21 +58,67 @@ export type ProductSize = {
 	product?: Product;
 	productId?: number;
 };
-export type Order = {
+// orders
+
+export interface BundleItem {
+	id: number;
+	orderItemId: number;
+	product: Product;
+	productId: number;
+	variant?: ProductSize;
+	variantId?: number;
+	weight: string;
+	markup: string;
+	price: number;
+}
+
+export interface OrderItem {
+	id: number;
+	orderId: number;
+	product: Product;
+	productId: number;
+	quantity: number;
+	price: number;
+	weight: string;
+	markup: string;
+	variant?: ProductSize;
+	variantId?: number;
+	type: ProductType;
+	bundleItems: BundleItem[];
+}
+
+export interface Transaction {
+	id: string;
+	invoiceId: string;
+	externalId: string;
+	userId: number;
+	amount: bigint;
+	status: TransactionStatus;
+	createdAt: Date;
+	updatedAt: Date;
+	extraData: Record<string, any>;
+	orderId?: number;
+}
+
+export interface Order {
 	id: number;
 	user: User;
 	userId: number;
-	product: Product;
-	productId: number;
 	status: OrderStatus;
+	items: OrderItem[];
+	transactions: Transaction[];
+	paymentType: PaymentType;
+	goldPrice: number;
+	isActive: boolean;
+	totalAmount: number;
 	createdAt: Date;
-};
+	updatedAt: Date;
+}
 
-enum OrderStatus {
+export enum OrderStatus {
 	PENDING = "PENDING",
-	PAID = "PAID",
-	SHIPPED = "SHIPPED",
-	COMPLETED = "COMPLETED",
+	CONFIRMED = "CONFIRMED",
+	DELIVERED = "DELIVERED",
 	CANCELLED = "CANCELLED",
 }
 
@@ -90,6 +136,14 @@ export enum Role {
 }
 
 export enum PaymentType {
+	PREPAYMENTBYCARD = "PREPAYMENTBYCARD",
 	CASH = "CASH",
-	CARD = "CARD",
+	REFUND = "REFUND",
+}
+
+export enum TransactionStatus {
+	SUCCESS = "success",
+	PENDING = "pending",
+	FAILED = "failed",
+	REFUND = "refund",
 }

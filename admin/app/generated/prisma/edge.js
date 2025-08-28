@@ -313,7 +313,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/ozodbekshukurov/Documents/dotlabs/parizoda_gold/admin/app/generated/prisma",
+      "value": "/Users/dalersharifkulov/tgminiapp/admin/app/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -327,7 +327,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/ozodbekshukurov/Documents/dotlabs/parizoda_gold/admin/prisma/schema.prisma",
+    "sourceFilePath": "/Users/dalersharifkulov/tgminiapp/admin/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

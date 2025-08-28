@@ -46,27 +46,27 @@ const navigationItems = [
 		icon: LayoutDashboard,
 	},
 	{
-		title: "Users",
+		title: "Пользователи",
 		url: "/admin/users",
 		icon: Users,
 	},
 	{
-		title: "Categories",
+		title: "Категории",
 		url: "/admin/categories",
 		icon: FolderOpen,
 	},
 	{
-		title: "Products",
+		title: "Продукты",
 		url: "/admin/products",
 		icon: Package,
 	},
 	{
-		title: "Purchase History",
-		url: "/admin/purchase-history",
+		title: "Заказы",
+		url: "/admin/orders",
 		icon: ShoppingBag,
 	},
 	{
-		title: "Banners",
+		title: "Баннеры",
 		url: "/admin/banners",
 		icon: ImageIcon,
 	},
