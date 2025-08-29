@@ -96,7 +96,7 @@ services:
     networks:
       - gold-net
     depends_on:
-      - backend
+      - database
 
   database:
     image: postgres:alpine
