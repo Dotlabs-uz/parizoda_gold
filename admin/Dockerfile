@@ -55,5 +55,5 @@ RUN cp -R pre_build/prisma /build/prisma
 
 RUN rm -r /pre_build
 
-CMD npm run start --prefix ./build && npx prisma migrate deploy && npx prisma db seed
+CMD npm run start --prefix ./build
 EXPOSE 3000
