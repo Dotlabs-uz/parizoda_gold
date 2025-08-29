@@ -13,6 +13,11 @@ services:
       - --certificatesresolvers.resolver.acme.tlschallenge=true
       - --certificatesresolvers.resolver.acme.email=dsarifkulo021@gmail.com
       - --certificatesresolvers.resolver.acme.storage=/letsencrypt/acme.json
+      - --tls.options.secure.minVersion=VersionTLS12
+      - --certificatesresolvers.resolver.acme.httpchallenge=true
+      - --certificatesresolvers.resolver.acme.httpchallenge.entrypoint=web
+      - traefik.http.routers.gold.middlewares=gold-headers
+      - traefik.http.middlewares.gold-headers.headers.frameDeny=false
     networks:
       - gold-net
     ports:
