@@ -52,7 +52,6 @@ RUN cp -R pre_build/package.json /build/package.json
 RUN cp -R pre_build/public /build/public
 RUN cp -R pre_build/next.config.ts /build/next.config.ts
 RUN cp -R pre_build/prisma /build/prisma
-RUN cp -R pre_build/app/generated /build/app/generated
 
 RUN rm -r /pre_build
 
