@@ -5,6 +5,7 @@ WORKDIR /app
 COPY package*.json .
 
 RUN npm install
+RUN npm i -g serve
 
 COPY . .
 ARG VITE_API_URL
@@ -18,6 +19,6 @@ ENV NODE_ENV=${NODE_ENV}
 
 RUN npm run build
 
-EXPOSE 4173
+CMD [ "serve", "-s", "dist", "-p", "4173" ]
 
-CMD npm run preview
+EXPOSE 4173
