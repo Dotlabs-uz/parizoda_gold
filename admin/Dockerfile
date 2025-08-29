@@ -43,7 +43,6 @@ ENV NODE_ENV=${NODE_ENV}
 
 RUN npm run build --prefix /pre_build
 RUN cd /pre_build && npx prisma generate
-RUN cd /pre_build && npx prisma migrate deploy
 
 RUN mkdir -p /build/
 
@@ -56,5 +55,5 @@ RUN cp -R pre_build/prisma /build/prisma
 
 RUN rm -r /pre_build
 
-CMD [ "npm", "run", "start", "--prefix", "./build" ]
+CMD npm run start --prefix ./build && npx prisma migrate deploy
 EXPOSE 3000
