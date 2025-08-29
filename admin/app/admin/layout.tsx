@@ -12,6 +12,9 @@ export const metadata: Metadata = {
 	description: "Admin dashboard for managing users, products, and more",
 };
 
+export const dynamic = 'force-dynamic';      // don’t pre-render at build
+export const revalidate = 0;
+
 export default async function RootLayout({
 	children,
 }: {

@@ -96,13 +96,12 @@ services:
     networks:
       - gold-net
     depends_on:
-      - database
+      database:
+        condition: service_healthy
 
   database:
     image: postgres:alpine
     container_name: database
-    env_file:
-      - ~/www/.env
     environment:
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASS}
@@ -113,6 +112,12 @@ services:
       - ../volumes/database/:/var/lib/postgresql/data
     networks:
       - gold-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
   gold-net:

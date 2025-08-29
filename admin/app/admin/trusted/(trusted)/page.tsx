@@ -1,6 +1,9 @@
 import prisma from "@/lib/prisma";
 import GoldPriceEditor from "./GoldPriceEditor";
 
+export const dynamic = 'force-dynamic';      // don’t pre-render at build
+export const revalidate = 0;
+
 export default async function Page() {
 	const au = await prisma.auPrice.findFirst();
 
