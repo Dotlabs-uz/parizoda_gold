@@ -39,7 +39,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.bot.rule=Host(`${HOST}`) && PathPrefix(`/`)
-      - traefik.http.services.bot.loadbalancer.server.port=8080
+      - traefik.http.services.bot.loadbalancer.server.port=4173
       - traefik.http.routers.bot.entrypoints=websecure
       - traefik.http.routers.bot.tls.certresolver=resolver
     networks:

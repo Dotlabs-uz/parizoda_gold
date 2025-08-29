@@ -54,4 +54,4 @@ RUN cp -R pre_build/next.config.mjs /build/next.config.mjs
 RUN rm -r /pre_build
 
 CMD [ "npm", "run", "start", "--prefix", "./build" ]
-EXPOSE 3030
+EXPOSE 3000
