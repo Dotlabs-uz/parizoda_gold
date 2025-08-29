@@ -43,6 +43,7 @@ ENV NODE_ENV=${NODE_ENV}
 
 RUN npm run build --prefix /pre_build
 RUN cd /pre_build && npx prisma generate
+RUN cd /pre_build && npx prisma migrate deploy
 
 RUN mkdir -p /build/
 
