@@ -7,94 +7,96 @@ import prisma from "@/lib/prisma";
 import { ChekoutUrlResponseType } from "../create/create-checkout-response.type";
 
 function validateBody(body: Record<string, any>) {
-    if (!body.userId) {
-        return null;
-    }
+	if (!body.userId) {
+		return null;
+	}
 
-    if (!body.amount && typeof body.amount !== 'number') {
-        return null;
-    }
+	if (!body.amount && typeof body.amount !== "number") {
+		return null;
+	}
 
-    if (!body.orderId) {
-        return null;
-    }
+	if (!body.orderId) {
+		return null;
+	}
 
-    return {
-        userId: body.userId,
-        amount: body.amount,
-        orderId: body.orderId
-    };
+	return {
+		userId: body.userId,
+		amount: body.amount,
+		orderId: body.orderId,
+	};
 }
 
 export async function POST(req: NextRequest) {
-    try {
-        const body = validateBody(await req.json());
-        if (!body) {
-            return NextResponse.json(
-                {
-                    error: "Invalid amount"
-                },
-                { status: 422 }
-            );
-        }
+	try {
+		const body = validateBody(await req.json());
+		if (!body) {
+			return NextResponse.json(
+				{
+					error: "Invalid amount",
+				},
+				{ status: 422 }
+			);
+		}
 
-        const user = await prisma.user.findUnique({ where: { id: body.userId } });
+		const user = await prisma.user.findUnique({
+			where: { id: body.userId },
+		});
 
-        if (!user?.first_name || !user?.createdAt || !user?.phone) {
-            return NextResponse.json(
-                {
-                    checkout_url: null
-                },
-                { status: 200 }
-            );
-        }
+		if (!user?.first_name || !user?.createdAt || !user?.phone) {
+			return NextResponse.json(
+				{
+					checkout_url: null,
+				},
+				{ status: 200 }
+			);
+		}
 
-        const payload = {
-            store_id: process.env.MULTICARD_STORE_ID,
-            amount: body.amount * 100,
-            invoice_id: randomUUID(),
-            callback_url: process.env.MULTICARD_CALBACK_URL,
-        };
+		const payload = {
+			store_id: process.env.MULTICARD_STORE_ID,
+			amount: body.amount * 100,
+			invoice_id: randomUUID(),
+			callback_url: process.env.MULTICARD_CALBACK_URL,
+		};
 
-        const token = await getMulticardToken();
-        const response = await axios.post(process.env.MULTICARD_URL!, payload, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+		const token = await getMulticardToken();
+		const response = await axios.post(process.env.MULTICARD_URL!, payload, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
 
-        const data = response.data as ChekoutUrlResponseType;
-        console.info({ request_body: payload, response_data: response.data });
+		const data = response.data as ChekoutUrlResponseType;
+		// console.info({ request_body: payload, response_data: response.data });
 
-        if (!data.success) {
-            return NextResponse.json(null, { status: 400 });
-        }
+		if (!data.success) {
+			return NextResponse.json(null, { status: 400 });
+		}
 
-        await prisma.transaction.create({
-            data: {
-                invoiceId: payload.invoice_id,
-                externalId: data.data.uuid,
-                userId: body.userId,
-                amount: payload.amount,
-                status: $Enums.TransactionStatus.pending,
-                orderId: body.orderId
-            }
-        });
+		await prisma.transaction.create({
+			data: {
+				invoiceId: payload.invoice_id,
+				externalId: data.data.uuid,
+				userId: body.userId,
+				amount: payload.amount,
+				status: $Enums.TransactionStatus.pending,
+				orderId: body.orderId,
+			},
+		});
 
-        return NextResponse.json(
-            {
-                checkout_url: data.data.checkout_url
-            },
-            { status: 200 }
-        );
-    } catch (e) {
-        const error = e as AxiosError;
-        console.info({ error: error });
-        return NextResponse.json(
-            {
-                checkout_url: null
-            },
-            { status: 200 }
-        );
-    }
+		return NextResponse.json(
+			{
+				checkout_url: data.data.checkout_url,
+			},
+			{ status: 200 }
+		);
+	} catch (e) {
+		const error = e as AxiosError;
+		console.info({ error: error });
+		return NextResponse.json(
+			{
+				checkout_url: null,
+			},
+			{ status: 200 }
+		);
+	}
 }

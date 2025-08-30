@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -41,8 +41,7 @@ function ProductDetails({ product }: ProductDetailsProps) {
 		markup: product.markup,
 		title: product.name,
 		price: calculate({
-			weight:
-				selectedSize?.weight || 0,
+			weight: selectedSize?.weight || 0,
 			markup: product.markup,
 		}),
 		quantity: 1,
@@ -201,7 +200,7 @@ function BundleContainer({
 			const item: any = bundleItems[id as keyof typeof bundleItems];
 			if (item) {
 				price += item.price;
-				weight += item.weight;
+				weight += Number(item.weight);
 			}
 		}
 		return { weight, price };
@@ -274,24 +273,26 @@ const BundleItemCard = memo(
 			<Card className="p-4 hover:shadow-md transition-shadow">
 				<div className="flex items-start justify-between gap-4">
 					<div className="flex items-center gap-2">
-						<div className="relative w-16 h-16 flex-shrink-0 overflow-hidden rounded-md">
-							{child.images && child.images.length > 0 ? (
-								<img
-									src={
-										child.images[0].url ||
-										"/placeholder.svg"
-									}
-									alt={child.name}
-									className="object-cover w-full h-full"
-								/>
-							) : (
-								<div className="flex h-full items-center justify-center bg-secondary/20">
-									<span className="text-xs text-muted-foreground">
-										No image
-									</span>
-								</div>
-							)}
-						</div>
+						<Link to={`/product/${child.id}`}>
+							<div className="relative w-16 h-16 flex-shrink-0 overflow-hidden rounded-md">
+								{child.images && child.images.length > 0 ? (
+									<img
+										src={
+											child.images[0].url ||
+											"/placeholder.svg"
+										}
+										alt={child.name}
+										className="object-cover w-full h-full"
+									/>
+								) : (
+									<div className="flex h-full items-center justify-center bg-secondary/20">
+										<span className="text-xs text-muted-foreground">
+											No image
+										</span>
+									</div>
+								)}
+							</div>
+						</Link>
 
 						{/* Product Info */}
 						<div className="text-left hover:text-primary transition-colors">

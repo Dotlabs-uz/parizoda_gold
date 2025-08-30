@@ -21,7 +21,7 @@ import { formatPrice } from "@/lib/utils";
 import { Link, useNavigate } from "react-router-dom";
 import { ProductType } from "@/types";
 import { usePrice } from "@/context/PriceContext";
-import { CartItem, useCart } from "@/context/CartProvider";
+import { type CartItem, useCart } from "@/context/CartProvider";
 import axios from "axios";
 
 const isValidPhone = (v: string) => /^\+?998\d{9}$/.test(v.replace(/\D/g, ""));
@@ -30,44 +30,48 @@ const createOrderBody = (selected: CartItem[]) => {
 	return selected.map((item: CartItem) => {
 		const res: any = {
 			productId: item.id,
-			quantity: item.quantity
+			quantity: item.quantity,
 		};
 
-		if (item.configKey.includes('single')) {
+		if (item.configKey.includes("single")) {
 			res.variantId = item.selectedSizeId;
 		}
 
-		res.bundleItems = item.items?.map((elem) => ({ productId: elem.childId, variantId: elem.selectedSizeId })) || [];
+		res.bundleItems =
+			item.items?.map((elem) => ({
+				productId: elem.childId,
+				variantId: elem.selectedSizeId,
+			})) || [];
 
 		return res;
 	});
-}
+};
 
 const createOrder = async (selected: CartItem[]) => {
 	try {
 		const items = createOrderBody(selected);
 
-		const token = localStorage.getItem('token');
+		const token = localStorage.getItem("token");
 
 		await axios.post(
-			import.meta.env.VITE_API_URL + '/orders',
+			import.meta.env.VITE_API_URL + "/orders",
 			{
 				order: {
 					paymentType: "CASH",
-					items
+					items,
 				},
 			},
 			{
 				headers: {
-					Authorization: `Bearer ${token}`
-				}
+					Authorization: `Bearer ${token}`,
+				},
 			}
 		);
 		return true;
 	} catch (e) {
 		return false;
 	}
-}
+};
 
 type ProfileForm = {
 	first_name: string;
@@ -102,7 +106,7 @@ export default function BuyNowPage() {
 							sum +
 							calculate({
 								weight: bundleItem.weight,
-								markup: bundleItem.markup
+								markup: bundleItem.markup,
 							}),
 						0
 					) || 0;
@@ -111,7 +115,7 @@ export default function BuyNowPage() {
 				return (
 					acc +
 					calculate({ weight: item.weight, markup: item.markup }) *
-					item.quantity
+						item.quantity
 				);
 			}
 		}, 0);
@@ -188,13 +192,13 @@ export default function BuyNowPage() {
 			setIsProcessing(false);
 			clearSelected();
 			selected.forEach((item) => removeFromCart(item.configKey));
-			navigate('/profile');
+			navigate("/profile");
 			return;
 		}
 
 		const items = createOrderBody(selected);
 
-		const token = localStorage.getItem('token');
+		const token = localStorage.getItem("token");
 
 		const res = await axios.post(
 			import.meta.env.VITE_API_URL + "/payment/create",
@@ -203,17 +207,17 @@ export default function BuyNowPage() {
 				amount: Number(import.meta.env.VITE_ORDER_FIX_PRICE || 5000),
 				order: {
 					paymentType: "PREPAYMENTBYCARD",
-					items
-				}
+					items,
+				},
 			},
 			{
 				headers: {
-					Authorization: `Bearer ${token}`
-				}
+					Authorization: `Bearer ${token}`,
+				},
 			}
 		);
 		if (!res.data.checkout_url) {
-			alert('Что-то пошло не так проверьте свои данные !');
+			alert("Что-то пошло не так проверьте свои данные !");
 			return;
 		}
 
@@ -221,7 +225,7 @@ export default function BuyNowPage() {
 
 		clearSelected();
 		selected.forEach((item) => removeFromCart(item.configKey));
-		navigate('/profile');
+		navigate("/profile");
 		setIsProcessing(false);
 	};
 
@@ -251,25 +255,57 @@ export default function BuyNowPage() {
 			type="button"
 			onClick={onClick}
 			aria-pressed={active}
-			className={`w-full rounded-2xl border-2 p-4 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${active
-				? "border-transparent bg-gradient-to-r from-sky-100 via-violet-100 to-fuchsia-100 shadow"
-				: "border-border hover:border-primary/50"
-				}`}
+			className={`w-full rounded-2xl border-2 p-4 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+				active
+					? "border-transparent text-white shadow-lg"
+					: "border-border hover:shadow-sm"
+			}`}
+			style={
+				active
+					? {
+							background: "var(--gradient-gold)",
+							color: "white",
+					  }
+					: {
+							borderColor: "var(--color-silver)",
+					  }
+			}
+			onMouseEnter={(e) => {
+				if (!active) {
+					e.currentTarget.style.borderColor = "var(--color-gold)";
+				}
+			}}
+			onMouseLeave={(e) => {
+				if (!active) {
+					e.currentTarget.style.borderColor = "var(--color-silver)";
+				}
+			}}
 		>
 			<div className="flex items-start gap-3">
 				<Icon
-					className={`mt-0.5 h-6 w-6 ${active ? "opacity-100" : "opacity-80"
-						}`}
+					className={`mt-0.5 h-6 w-6 ${
+						active ? "opacity-100" : "opacity-80"
+					}`}
 				/>
 				<div className="flex-1">
 					<div className="text-base font-semibold leading-tight">
 						{title}
 					</div>
-					<div className="text-sm text-muted-foreground">
+					<div
+						className={`text-sm ${
+							active ? "text-white/90" : "text-muted-foreground"
+						}`}
+					>
 						{description}
 					</div>
 					{meta ? (
-						<div className="mt-1 text-sm font-medium">{meta}</div>
+						<div
+							className={`mt-1 text-sm font-medium ${
+								active ? "text-white" : ""
+							}`}
+						>
+							{meta}
+						</div>
 					) : null}
 				</div>
 			</div>
@@ -277,13 +313,34 @@ export default function BuyNowPage() {
 	);
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-white via-white to-sky-50">
+		<div
+			className="min-h-screen"
+			style={{ backgroundColor: "var(--color-silver)" }}
+		>
+			{/* Back button at the top */}
+			<div className="px-4 pt-4">
+				<Button
+					onClick={() => navigate(-1)}
+					className="mb-4 text-white font-medium rounded-lg px-4 py-2 shadow-sm hover:shadow-md transition-shadow border-0"
+					style={{
+						background: "var(--gradient-emerald)",
+					}}
+				>
+					Назад
+				</Button>
+			</div>
 			<div className="mx-auto max-w-md px-4 pb-36 pt-4">
-				<Card className="rounded-2xl shadow-sm p-0">
+				<Card
+					className="rounded-2xl shadow-sm p-0"
+					style={{ borderColor: "var(--color-silver)" }}
+				>
 					<CardContent className="space-y-5 p-4">
 						{/* Payment selection */}
 						<section>
-							<h3 className="mb-3 text-sm font-semibold">
+							<h3
+								className="mb-3 text-sm font-semibold"
+								style={{ color: "var(--color-black-rich)" }}
+							>
 								Способ оплаты
 							</h3>
 							<div className="space-y-3">
@@ -314,12 +371,17 @@ export default function BuyNowPage() {
 							</div>
 						</section>
 
-						<Separator />
+						<Separator
+							style={{ backgroundColor: "var(--color-silver)" }}
+						/>
 
 						{/* Profile preview + edit entry point */}
 						<section className="space-y-3">
 							<div className="flex items-center justify-between">
-								<h3 className="text-sm font-semibold">
+								<h3
+									className="text-sm font-semibold"
+									style={{ color: "var(--color-black-rich)" }}
+								>
 									Ваши данные
 								</h3>
 
@@ -333,7 +395,26 @@ export default function BuyNowPage() {
 											<Button
 												size="sm"
 												variant="outline"
-												className="h-8 gap-2"
+												className="h-8 gap-2 bg-transparent hover:shadow-sm transition-all"
+												style={{
+													borderColor:
+														"var(--color-gold)",
+													color: "var(--color-gold)",
+													backgroundColor:
+														"transparent",
+												}}
+												onMouseEnter={(e) => {
+													e.currentTarget.style.backgroundColor =
+														"var(--color-gold)";
+													e.currentTarget.style.color =
+														"white";
+												}}
+												onMouseLeave={(e) => {
+													e.currentTarget.style.backgroundColor =
+														"transparent";
+													e.currentTarget.style.color =
+														"var(--color-gold)";
+												}}
 											>
 												<PencilLine className="h-4 w-4" />{" "}
 												Изменить
@@ -366,7 +447,6 @@ export default function BuyNowPage() {
 													className="mt-1 h-11"
 													placeholder="Иван"
 													autoComplete="given-name"
-													// RHF: register field with validation rules
 													{...register("first_name", {
 														required: true,
 														minLength: 2,
@@ -425,7 +505,7 @@ export default function BuyNowPage() {
 														{String(
 															errors.phone
 																.message ||
-															"Неверный номер"
+																"Неверный номер"
 														)}
 													</p>
 												)}
@@ -457,7 +537,11 @@ export default function BuyNowPage() {
 											<SheetFooter className="mt-4">
 												<Button
 													type="submit"
-													className="h-11 w-full"
+													className="h-11 w-full text-white shadow-sm hover:shadow-md transition-shadow border-0"
+													style={{
+														background:
+															"var(--gradient-gold)",
+													}}
 												>
 													Сохранить
 												</Button>
@@ -472,7 +556,7 @@ export default function BuyNowPage() {
 								<div className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-3">
 									<ShieldAlert className="mt-0.5 h-5 w-5 text-destructive" />
 									<div className="text-sm">
-										<div className="font-medium">
+										<div className="font-medium text-destructive">
 											Покупка недоступна
 										</div>
 										<div className="text-muted-foreground">
@@ -482,37 +566,100 @@ export default function BuyNowPage() {
 									</div>
 								</div>
 							) : (
-								// Compact preview of saved profile for confirmation
 								<div className="flex flex-col gap-3 text-sm">
-									<div className="rounded-xl border p-3">
-										<div className="text-xs text-muted-foreground">
+									<div
+										className="rounded-xl border p-3"
+										style={{
+											borderColor: "var(--color-silver)",
+											backgroundColor: "white",
+										}}
+									>
+										<div
+											className="text-xs"
+											style={{
+												color: "var(--color-gray-text)",
+											}}
+										>
 											Имя
 										</div>
-										<div className="font-medium">
+										<div
+											className="font-medium"
+											style={{
+												color: "var(--color-black-rich)",
+											}}
+										>
 											{getValues("first_name")}
 										</div>
 									</div>
-									<div className="rounded-xl border p-3">
-										<div className="text-xs text-muted-foreground">
+									<div
+										className="rounded-xl border p-3"
+										style={{
+											borderColor: "var(--color-silver)",
+											backgroundColor: "white",
+										}}
+									>
+										<div
+											className="text-xs"
+											style={{
+												color: "var(--color-gray-text)",
+											}}
+										>
 											Фамилия
 										</div>
-										<div className="font-medium">
+										<div
+											className="font-medium"
+											style={{
+												color: "var(--color-black-rich)",
+											}}
+										>
 											{getValues("last_name")}
 										</div>
 									</div>
-									<div className="rounded-xl border p-3">
-										<div className="text-xs text-muted-foreground">
+									<div
+										className="rounded-xl border p-3"
+										style={{
+											borderColor: "var(--color-silver)",
+											backgroundColor: "white",
+										}}
+									>
+										<div
+											className="text-xs"
+											style={{
+												color: "var(--color-gray-text)",
+											}}
+										>
 											Телефон
 										</div>
-										<div className="font-medium">
+										<div
+											className="font-medium"
+											style={{
+												color: "var(--color-black-rich)",
+											}}
+										>
 											{getValues("phone")}
 										</div>
 									</div>
-									<div className="rounded-xl border p-3">
-										<div className="text-xs text-muted-foreground">
+									<div
+										className="rounded-xl border p-3"
+										style={{
+											borderColor: "var(--color-silver)",
+											backgroundColor: "white",
+										}}
+									>
+										<div
+											className="text-xs"
+											style={{
+												color: "var(--color-gray-text)",
+											}}
+										>
 											Telegram ID
 										</div>
-										<div className="font-medium">
+										<div
+											className="font-medium"
+											style={{
+												color: "var(--color-black-rich)",
+											}}
+										>
 											{getValues("telegramId")}
 										</div>
 									</div>
@@ -524,30 +671,45 @@ export default function BuyNowPage() {
 			</div>
 
 			{/* Sticky footer CTA with colorful accent */}
-			<div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/75">
+			<div
+				className="fixed inset-x-0 bottom-0 z-30 border-t px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/75"
+				style={{
+					borderColor: "var(--color-silver)",
+					backgroundColor: "rgba(255, 255, 255, 0.95)",
+				}}
+			>
 				<div className="mx-auto flex max-w-md items-center gap-3">
 					<div className="min-w-0 flex-1">
-						<div className="text-xs text-muted-foreground">
+						<div
+							className="text-xs"
+							style={{ color: "var(--color-gray-text)" }}
+						>
 							К оплате
 						</div>
-						<div className="truncate text-lg font-bold text-fuchsia-700">
+						<div
+							className="truncate text-lg font-bold"
+							style={{ color: "var(--color-gold)" }}
+						>
 							{paymentMethod === "card"
 								? formatPrice(prepaymentAmount)
 								: formatPrice(productPrice)}
 						</div>
 					</div>
 					<Button
-						className="h-12 flex-1 bg-gradient-to-r from-sky-600 via-violet-600 to-fuchsia-600 text-white hover:from-sky-700 hover:via-violet-700 hover:to-fuchsia-700"
+						className="h-12 flex-1 text-white shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 border-0"
+						style={{
+							background: "var(--gradient-gold)",
+						}}
 						disabled={!hasRequiredProfile || isProcessing}
 						onClick={handlePurchase}
 					>
 						{isProcessing
 							? "Оформляем..."
 							: paymentMethod === "cash"
-								? "Оформить заказ"
-								: `Внести предоплату ${formatPrice(
+							? "Оформить заказ"
+							: `Внести предоплату ${formatPrice(
 									prepaymentAmount
-								)}`}
+							  )}`}
 					</Button>
 				</div>
 			</div>

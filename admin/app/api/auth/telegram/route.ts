@@ -52,10 +52,13 @@ export async function POST(req: NextRequest) {
 				include: {
 					items: {
 						include: {
-							product: true
-						}
-					}
-				}
+							product: true,
+						},
+					},
+				},
+				orderBy: {
+					createdAt: "desc",
+				},
 			},
 		},
 	});
