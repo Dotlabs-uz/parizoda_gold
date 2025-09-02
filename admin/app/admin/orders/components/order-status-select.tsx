@@ -1,5 +1,6 @@
 "use client";
 
+import { OrderStatus } from "@/app/types";
 import {
 	Select,
 	SelectContent,
@@ -9,19 +10,11 @@ import {
 } from "@/components/ui/select";
 
 interface OrderStatusSelectProps {
-	currentStatus: string;
+	currentStatus: OrderStatus;
 	orderId: number;
-	onStatusChange: (orderId: number, newStatus: string) => void;
+	onStatusChange: (orderId: number, newStatus: OrderStatus) => void;
 	disabled?: boolean;
 }
-
-const statusLabels: Record<string, string> = {
-	PENDING: "В ожидании",
-	CONFIRMED: "Подтвержден",
-	DELIVERED: "Доставлен",
-	CANCELLED: "Отменен",
-};
-
 export function OrderStatusSelect({
 	currentStatus,
 	orderId,
@@ -31,17 +24,21 @@ export function OrderStatusSelect({
 	return (
 		<Select
 			value={currentStatus}
-			onValueChange={(value) => onStatusChange(orderId, value)}
+			onValueChange={(value) =>
+				onStatusChange(orderId, value as OrderStatus)
+			}
 			disabled={disabled}
 		>
 			<SelectTrigger className="w-[140px] h-8">
 				<SelectValue />
 			</SelectTrigger>
 			<SelectContent>
-				<SelectItem value="PENDING">В ожидании</SelectItem>
-				<SelectItem value="CONFIRMED">Подтвержден</SelectItem>
-				<SelectItem value="DELIVERED">Доставлен</SelectItem>
-				<SelectItem value="CANCELLED">Отменен</SelectItem>
+				<SelectItem value={OrderStatus.PENDING}>В ожидании</SelectItem>
+				<SelectItem value={OrderStatus.CONFIRMED}>
+					Подтвержден
+				</SelectItem>
+				<SelectItem value={OrderStatus.DELIVERED}>Доставлен</SelectItem>
+				<SelectItem value={OrderStatus.CANCELLED}>Отменен</SelectItem>
 			</SelectContent>
 		</Select>
 	);

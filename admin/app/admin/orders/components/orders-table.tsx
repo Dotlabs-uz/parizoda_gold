@@ -30,7 +30,9 @@ import {
 } from "lucide-react";
 import { OrderStatusSelect } from "./order-status-select";
 import { formatDate, formatPrice } from "@/lib/utils";
-import { PaymentType, ProductType, type Order } from "@/app/types";
+import { OrderStatus, PaymentType, ProductType, type Order } from "@/app/types";
+import { updateOrderStatus } from "../actions";
+import { toast } from "sonner";
 
 interface OrdersTableProps {
 	orders: Array<{
@@ -44,7 +46,6 @@ interface OrdersTableProps {
 		user: any;
 		items: any;
 	}>;
-	onStatusUpdate?: (orderId: number, newStatus: string) => Promise<void>;
 }
 
 function OrderSeparatorRow({ date, count }: { date: string; count: number }) {
@@ -78,12 +79,12 @@ function OrderRow({
 	disabled,
 }: {
 	order: Order;
-	onStatusChange: (orderId: number, newStatus: string) => Promise<void>;
+	onStatusChange: (orderId: number, newStatus: OrderStatus) => Promise<void>;
 	disabled: boolean;
 }) {
 	const [open, setOpen] = useState(false);
 
-	const getStatusConfig = (status: string) => {
+	const getStatusConfig = (status: OrderStatus) => {
 		switch (status) {
 			case "PENDING":
 				return {
@@ -106,12 +107,19 @@ function OrderRow({
 					text: "text-emerald-800",
 					label: "Доставлен",
 				};
-			default:
+			case "CANCELLED":
 				return {
 					bg: "bg-red-50 border-red-200",
 					dot: "bg-red-500",
 					text: "text-red-800",
 					label: "Отменен",
+				};
+			default:
+				return {
+					bg: "bg-gray-50 border-gray-200",
+					dot: "bg-gray-500",
+					text: "text-gray-800",
+					label: "Неизвестный статус",
 				};
 		}
 	};
@@ -330,21 +338,25 @@ function OrderRow({
 	);
 }
 
-export function OrdersTable({ orders = [], onStatusUpdate }: OrdersTableProps) {
+export function OrdersTable({ orders = [] }: OrdersTableProps) {
 	const [updatingOrders, setUpdatingOrders] = useState<Set<number>>(
 		new Set()
 	);
 
-	const handleStatusChange = async (orderId: number, newStatus: string) => {
+	const handleStatusChange = async (
+		orderId: number,
+		newStatus: OrderStatus
+	) => {
 		setUpdatingOrders((prev) => new Set(prev).add(orderId));
 
 		try {
-			if (onStatusUpdate) {
-				await onStatusUpdate(orderId, newStatus);
-			}
+			await updateOrderStatus(orderId, newStatus);
 		} catch (error) {
-			console.error("Failed to update order status:", error);
+			toast.error("Failed to update order status:" + error);
 		} finally {
+			toast.success("Success", {
+				description: "Order status updated successfully",
+			});
 			setUpdatingOrders((prev) => {
 				const newSet = new Set(prev);
 				newSet.delete(orderId);
