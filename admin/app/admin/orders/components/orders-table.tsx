@@ -254,6 +254,9 @@ function OrderRow({
 												<th className="text-left py-3 px-4 font-semibold text-slate-700">
 													Тип
 												</th>
+												<th className="text-left py-3 px-4 font-semibold text-slate-700">
+													Комплектующие
+												</th>
 												<th className="text-center py-3 px-4 font-semibold text-slate-700">
 													Кол-во
 												</th>
@@ -287,32 +290,63 @@ function OrderRow({
 														ProductType.SINGLE
 															? "Изделие"
 															: "Комплект"}
-
-														{/* TODO: Доделать показ продуктов в комплекте с размерами изделий */}
-														{/* {item.type ===
-															ProductType.BUNDLE &&
-															item.bundleItems.map(
-																(bi) => (
-																	<div
-																		key={
-																			bi.id
-																		}
-																		className="flex items-center justify-between py-2 px-4 border-b border-slate-200"
-																	>
-																		<span className="font-medium text-slate-900">
-																			{
-																				bi.productId
-																			}
-																		</span>
-																		<span className="text-slate-600">
-																			{
-																				bi.weight
-																			}
-																		</span>
-																	</div>
-																)
-															)} */}
 													</td>
+													{item.type ===
+													ProductType.BUNDLE ? (
+														<td className="mt-2">
+															<ul className="flex items-center justify-between py-2 px-4 border-b border-slate-200">
+																{item.bundleItems.map(
+																	(
+																		bi: any
+																	) => (
+																		<li
+																			key={
+																				bi.id
+																			}
+																		>
+																			<span className="text-slate-900">
+																				{
+																					bi
+																						.product
+																						.sku
+																				}{" "}
+																				:{" "}
+																			</span>
+																			<span className="text-slate-600">
+																				Размер
+																				и
+																				вес:{" "}
+																				{
+																					bi
+																						.variant
+																						.size
+																				}
+
+																				/
+																				{
+																					bi
+																						.variant
+																						.weight
+																				}
+																			</span>
+																		</li>
+																	)
+																)}
+															</ul>
+														</td>
+													) : (
+														<td>
+															<Badge
+																variant="secondary"
+																className="font-mono text-xs"
+															>
+																{
+																	item.variant
+																		?.size
+																}
+															</Badge>
+														</td>
+													)}
 													<td className="py-3 px-4 text-center font-medium text-slate-900">
 														{item.quantity}
 													</td>
