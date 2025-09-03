@@ -43,9 +43,10 @@ interface OrdersTableProps {
 		paymentType: string;
 		createdAt: Date;
 		updatedAt: Date;
-		user: any;
+		user?: any;
 		items: any;
 	}>;
+	userFree?: boolean;
 }
 
 function OrderSeparatorRow({ date, count }: { date: string; count: number }) {
@@ -77,10 +78,12 @@ function OrderRow({
 	order,
 	onStatusChange,
 	disabled,
+	userFree,
 }: {
 	order: Order;
 	onStatusChange: (orderId: number, newStatus: OrderStatus) => Promise<void>;
 	disabled: boolean;
+	userFree: boolean;
 }) {
 	const [open, setOpen] = useState(false);
 
@@ -139,6 +142,10 @@ function OrderRow({
 		}
 	};
 
+	const totalWeight = order.items.reduce((sum, item) => {
+		return sum + Number(item.weight) * item.quantity;
+	}, 0);
+
 	return (
 		<>
 			<TableRow className="bg-white hover:bg-slate-50/80 transition-colors border-b border-slate-100">
@@ -147,21 +154,23 @@ function OrderRow({
 						#{order.id}
 					</Badge>
 				</TableCell>
-				<TableCell>
-					<div className="flex items-center gap-3">
-						<div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-							<User className="h-4 w-4 text-blue-600" />
-						</div>
-						<div>
-							<div className="font-medium text-slate-900">
-								{order.user.first_name || "Без имени"}
+				{!userFree && (
+					<TableCell>
+						<div className="flex items-center gap-3">
+							<div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+								<User className="h-4 w-4 text-blue-600" />
 							</div>
-							<div className="text-sm text-slate-500">
-								{order.user.phone || `ID: ${order.userId}`}
+							<div>
+								<div className="font-medium text-slate-900">
+									{order.user.first_name || "Без имени"}
+								</div>
+								<div className="text-sm text-slate-500">
+									{order.user.phone || `ID: ${order.userId}`}
+								</div>
 							</div>
 						</div>
-					</div>
-				</TableCell>
+					</TableCell>
+				)}
 				<TableCell>
 					<div className="flex items-center gap-2">
 						<Package className="h-4 w-4 text-slate-400" />
@@ -175,8 +184,15 @@ function OrderRow({
 						</span>
 					</div>
 				</TableCell>
-				<TableCell className="font-semibold text-slate-900 text-lg">
-					{formatPrice(order.totalAmount)}
+				<TableCell className="font-semibold text-slate-900">
+					<span className="text-lg">
+						{formatPrice(order.totalAmount)} <br />
+					</span>
+					за{" "}
+					<Badge className="bg-blue-500">
+						{totalWeight.toFixed(2)}
+					</Badge>{" "}
+					грамм
 				</TableCell>
 				<TableCell>
 					<div className="flex items-center gap-2">
@@ -264,7 +280,7 @@ function OrderRow({
 													Цена
 												</th>
 												<th className="text-right py-3 px-4 font-semibold text-slate-700">
-													Вес
+													Общий вес
 												</th>
 											</tr>
 										</thead>
@@ -294,7 +310,7 @@ function OrderRow({
 													{item.type ===
 													ProductType.BUNDLE ? (
 														<td className="mt-2">
-															<ul className="flex items-center justify-between py-2 px-4 border-b border-slate-200">
+															<ul className="flex flex-col items-start justify-between py-2 px-4 border-b border-slate-200">
 																{item.bundleItems.map(
 																	(
 																		bi: any
@@ -312,23 +328,23 @@ function OrderRow({
 																				}{" "}
 																				:{" "}
 																			</span>
-																			<span className="text-slate-600">
-																				Размер
-																				и
-																				вес:{" "}
+																			<Badge
+																				variant="secondary"
+																				className="font-mono text-xs"
+																			>
+																				Размер:{" "}
 																				{
 																					bi
 																						.variant
 																						.size
-																				}
-
-																				/
+																				}{" "}
+																				Вес:{" "}
 																				{
 																					bi
 																						.variant
 																						.weight
 																				}
-																			</span>
+																			</Badge>
 																		</li>
 																	)
 																)}
@@ -340,9 +356,15 @@ function OrderRow({
 																variant="secondary"
 																className="font-mono text-xs"
 															>
+																Размер:{" "}
 																{
 																	item.variant
 																		?.size
+																}{" "}
+																Вес:{" "}
+																{
+																	item.variant
+																		?.weight
 																}
 															</Badge>
 														</td>
@@ -356,7 +378,12 @@ function OrderRow({
 														)}
 													</td>
 													<td className="py-3 px-4 text-right text-slate-600">
-														{item.weight}
+														<Badge className="bg-blue-500">
+															{Number(
+																item.weight
+															).toFixed(2)}
+														</Badge>{" "}
+														гр
 													</td>
 												</tr>
 											))}
@@ -372,7 +399,10 @@ function OrderRow({
 	);
 }
 
-export function OrdersTable({ orders = [] }: OrdersTableProps) {
+export function OrdersTable({
+	orders = [],
+	userFree = false,
+}: OrdersTableProps) {
 	const [updatingOrders, setUpdatingOrders] = useState<Set<number>>(
 		new Set()
 	);
@@ -498,9 +528,11 @@ export function OrdersTable({ orders = [] }: OrdersTableProps) {
 									<TableHead className="w-[100px] font-semibold text-slate-700">
 										ID
 									</TableHead>
-									<TableHead className="font-semibold text-slate-700">
-										Клиент
-									</TableHead>
+									{!userFree && (
+										<TableHead className="font-semibold text-slate-700">
+											Клиент
+										</TableHead>
+									)}
 									<TableHead className="font-semibold text-slate-700">
 										Товары
 									</TableHead>
@@ -542,6 +574,7 @@ export function OrdersTable({ orders = [] }: OrdersTableProps) {
 											disabled={updatingOrders.has(
 												order.id
 											)}
+											userFree={userFree}
 										/>
 									);
 								})}
