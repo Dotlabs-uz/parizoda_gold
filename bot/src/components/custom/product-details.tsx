@@ -107,8 +107,8 @@ function ProductDetails({ product }: ProductDetailsProps) {
 
 					{!isBundle && (
 						<>
-							<div className="w-full flex items-center justify-between">
-								<div className="space-y-2">
+							<div className="w-full flex flex-col items-start gap-4">
+								<div className="w-full space-y-2">
 									<h2 className="text-xl font-semibold">
 										Размеры
 									</h2>
@@ -116,9 +116,10 @@ function ProductDetails({ product }: ProductDetailsProps) {
 										sizes={product.sizes}
 										selectedSize={selectedSize}
 										onSelectSize={setSelectedSize}
-									/>{" "}
+										toRow={true}
+									/>
 								</div>
-								<div className="flex items-end flex-col gap-2">
+								<div className="flex items-center justify-between w-full">
 									<span className="text-2xl text-primary">
 										{formatPrice(
 											calculate({
