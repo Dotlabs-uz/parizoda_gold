@@ -13,11 +13,12 @@ import {
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { ChevronDown, ShoppingBag } from "lucide-react";
-import { formatDate, formatPrice, getStatusColor } from "@/lib/utils";
+import { formatDate, formatPrice, getStatusConfig } from "@/lib/utils";
 import { Order, User } from "@/types";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface OrderHistoryProps {
 	user: User;
@@ -25,6 +26,7 @@ interface OrderHistoryProps {
 
 export function OrderHistory({ user }: OrderHistoryProps) {
 	const [isProcessing, setIsProcessing] = useState(false);
+	const navigate = useNavigate();
 
 	const rePayOrder = async (orderId: number) => {
 		setIsProcessing(true);
@@ -85,6 +87,14 @@ export function OrderHistory({ user }: OrderHistoryProps) {
 					Вы сделали {user.orders.length} заказ
 					{user.orders.length !== 1 ? "ов" : ""}.
 				</CardDescription>
+				<Button
+					variant="outline"
+					onClick={() => {
+						navigate(0);
+					}}
+				>
+					Обновить историю заказов
+				</Button>
 			</CardHeader>
 			<CardContent>
 				<div className="space-y-4">
@@ -92,6 +102,9 @@ export function OrderHistory({ user }: OrderHistoryProps) {
 						const notPayed =
 							order.isActive === false &&
 							order.paymentType === "PREPAYMENTBYCARD";
+						const statusConf = getStatusConfig(
+							notPayed ? "notPayed" : order.status
+						);
 
 						return (
 							<Collapsible
@@ -102,21 +115,13 @@ export function OrderHistory({ user }: OrderHistoryProps) {
 									<div className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50">
 										<div className="flex items-center gap-4">
 											<Badge
-												className={`${getStatusColor(
-													notPayed
-														? "notPayed"
-														: order.status
-												)} text-white`}
+												className={`${statusConf.bg} text-white`}
 											>
-												{notPayed
-													? "NOT PREPAYED"
-													: order.status}
+												{statusConf.label}
 											</Badge>
 											<div>
 												<p className="font-bold">
-													Заказ №{order.id}{" "}
-													{notPayed &&
-														"(Неоплаченный)"}
+													Заказ №{order.id}
 												</p>
 												<p className="text-sm text-muted-foreground">
 													{formatDate(

@@ -22,7 +22,7 @@ export default function ProfileView() {
 	const handleEditSuccess = () => {
 		setIsEditing(false);
 		navigate(0);
-		useRefetch(prev => !prev);
+		useRefetch((prev) => !prev);
 	};
 
 	const handleEditCancel = () => {
