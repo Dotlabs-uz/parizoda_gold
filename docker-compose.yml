@@ -30,10 +30,12 @@ services:
       args:
         VITE_API_URL: https://admin.${HOST}/api
         NODE_ENV: production
+        VITE_ORDER_FIX_PRICE: $VITE_ORDER_FIX_PRICE
     restart: always
     environment:
       VITE_API_URL: https://admin.${HOST}/api
       NODE_ENV: production
+      VITE_ORDER_FIX_PRICE: $VITE_ORDER_FIX_PRICE
     labels:
       - traefik.enable=true
       - traefik.http.routers.bot.rule=Host(`${HOST}`) && PathPrefix(`/`)
