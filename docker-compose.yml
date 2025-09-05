@@ -30,12 +30,10 @@ services:
       args:
         VITE_API_URL: https://admin.${HOST}/api
         NODE_ENV: production
-        VITE_ORDER_FIX_PRICE: $VITE_ORDER_FIX_PRICE
     restart: always
     environment:
       VITE_API_URL: https://admin.${HOST}/api
       NODE_ENV: production
-      VITE_ORDER_FIX_PRICE: $VITE_ORDER_FIX_PRICE
     labels:
       - traefik.enable=true
       - traefik.http.routers.bot.rule=Host(`${HOST}`) && PathPrefix(`/`)
@@ -69,6 +67,7 @@ services:
         MULTICARD_STORE_ID: $MULTICARD_STORE_ID
         MULTICARD_CALBACK_URL: $MULTICARD_CALBACK_URL
         NODE_ENV: production
+        FIX_PRICE: $VITE_ORDER_FIX_PRICE
     restart: always
     environment:
       NODE_ENV: production
@@ -87,6 +86,7 @@ services:
       MULTICARD_SECRET: $MULTICARD_SECRET
       MULTICARD_STORE_ID: $MULTICARD_STORE_ID
       MULTICARD_CALBACK_URL: $MULTICARD_CALBACK_URL
+      FIX_PRICE: $VITE_ORDER_FIX_PRICE
     labels:
       - traefik.enable=true
       - traefik.http.routers.app.rule=Host(`admin.${HOST}`) && PathPrefix(`/`)

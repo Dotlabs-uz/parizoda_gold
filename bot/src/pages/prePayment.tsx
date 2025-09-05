@@ -200,7 +200,6 @@ export default function BuyNowPage() {
 			import.meta.env.VITE_API_URL + "/payment/create",
 			{
 				userId: user?.id,
-				amount: Number(import.meta.env.VITE_ORDER_FIX_PRICE || 5000),
 				order: {
 					paymentType: "PREPAYMENTBYCARD",
 					items

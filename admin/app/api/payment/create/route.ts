@@ -11,18 +11,12 @@ function validateBody(body: Record<string, any>) {
   if (!body.userId) {
     return null;
   }
-
-  if (!body.amount && typeof body.amount !== 'number') {
-    return null;
-  }
-
   if (!body.order.items.length) {
     return null;
   }
 
   return {
     userId: body.userId,
-    amount: body.amount,
     order: body.order
   };
 }
@@ -33,9 +27,9 @@ export async function POST(req: NextRequest) {
     if (!body) {
       return NextResponse.json(
         {
-          error: "Invalid amount"
+          error: "Invalid credentials"
         },
-        { status: 422 }
+        { status: 400 }
       );
     }
 
@@ -52,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     const payload = {
       store_id: process.env.MULTICARD_STORE_ID,
-      amount: body.amount * 100,
+      amount: Number(process.env.FIX_PRICE) * 100,
       invoice_id: randomUUID(),
       callback_url: process.env.MULTICARD_CALBACK_URL,
     };
