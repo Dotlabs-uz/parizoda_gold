@@ -44,9 +44,9 @@ function getStatusBadge(status: any) {
 export default async function AdminUserDetailPage({
 	params,
 }: {
-	params: { id: string };
+	params: Promise<{ id: string }>;
 }) {
-	const userId = params.id;
+	const userId = (await params).id;
 
 	const user = await prisma.user.findUnique({
 		where: { id: Number(userId) },
@@ -73,6 +73,8 @@ export default async function AdminUserDetailPage({
 	const transactions = await prisma.transaction.findMany({
 		where: { userId: Number(userId) },
 	});
+
+	console.log(transactions);
 
 	if (!user) {
 		return <div>User not found</div>;
@@ -257,7 +259,7 @@ export default async function AdminUserDetailPage({
 										</TableCell>
 										<TableCell className="font-medium">
 											{formatPrice(
-												Number(transaction.amount)
+												Number(transaction.amount) / 100
 											)}
 										</TableCell>
 										<TableCell>
