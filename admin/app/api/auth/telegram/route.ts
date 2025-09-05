@@ -14,10 +14,13 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 // 				include: {
 // 					items: {
 // 						include: {
-// 							product: true
-// 						}
-// 					}
-// 				}
+// 							product: true,
+// 						},
+// 					},
+// 				},
+// 				orderBy: {
+// 					createdAt: "desc",
+// 				},
 // 			},
 // 		},
 // 	});
@@ -52,10 +55,13 @@ export async function POST(req: NextRequest) {
 				include: {
 					items: {
 						include: {
-							product: true
-						}
-					}
-				}
+							product: true,
+						},
+					},
+				},
+				orderBy: {
+					createdAt: "desc",
+				},
 			},
 		},
 	});
@@ -77,7 +83,7 @@ export async function POST(req: NextRequest) {
 		}));
 
 	const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
-		expiresIn: "7d",
+		expiresIn: "1d",
 	});
 
 	return NextResponse.json({ token, user });

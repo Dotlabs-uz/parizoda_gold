@@ -87,7 +87,13 @@ export default async function AdminOrdersPage({ searchParams }: any) {
 			items: {
 				include: {
 					product: true,
-					bundleItems: true,
+					variant: true,
+					bundleItems: {
+						include: {
+							variant: true,
+							product: true,
+						},
+					},
 				},
 			},
 		},
@@ -99,6 +105,8 @@ export default async function AdminOrdersPage({ searchParams }: any) {
 	const totalPages = Math.ceil(totalOrders / itemsPerPage);
 	const hasNextPage = currentPage < totalPages;
 	const hasPrevPage = currentPage > 1;
+
+	console.log(orders);
 
 	return (
 		<div className="flex-col min-h-screen">

@@ -13,11 +13,12 @@ import {
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { ChevronDown, ShoppingBag } from "lucide-react";
-import { formatDate, formatPrice, getStatusColor } from "@/lib/utils";
+import { formatDate, formatPrice, getStatusConfig } from "@/lib/utils";
 import { Order, User } from "@/types";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface OrderHistoryProps {
 	user: User;
@@ -25,33 +26,34 @@ interface OrderHistoryProps {
 
 export function OrderHistory({ user }: OrderHistoryProps) {
 	const [isProcessing, setIsProcessing] = useState(false);
+	const navigate = useNavigate();
 
 	const rePayOrder = async (orderId: number) => {
 		setIsProcessing(true);
-		const token = localStorage.getItem('token');
+		const token = localStorage.getItem("token");
 
 		const res = await axios.post(
 			import.meta.env.VITE_API_URL + "/payment/repay",
 			{
 				userId: user?.id,
 				amount: Number(import.meta.env.VITE_ORDER_FIX_PRICE || 5000),
-				orderId: orderId
+				orderId: orderId,
 			},
 			{
 				headers: {
-					Authorization: `Bearer ${token}`
-				}
+					Authorization: `Bearer ${token}`,
+				},
 			}
 		);
 		if (!res.data.checkout_url) {
-			alert('Что-то пошло не так проверьте свои данные !');
+			alert("Что-то пошло не так проверьте свои данные !");
 			return;
 		}
 
 		window.Telegram.WebApp.openLink(res.data.checkout_url);
-		
+
 		setIsProcessing(false);
-	}
+	};
 
 	if (!user.orders.length) {
 		return (
@@ -85,91 +87,128 @@ export function OrderHistory({ user }: OrderHistoryProps) {
 					Вы сделали {user.orders.length} заказ
 					{user.orders.length !== 1 ? "ов" : ""}.
 				</CardDescription>
+				<Button
+					variant="outline"
+					onClick={() => {
+						navigate(0);
+					}}
+				>
+					Обновить историю заказов
+				</Button>
 			</CardHeader>
 			<CardContent>
 				<div className="space-y-4">
-					{user.orders.map((order: Order) => (
-						<Collapsible
-							key={order.id}
-							className="border rounded-lg"
-						>
-							<CollapsibleTrigger asChild>
-								<div className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50">
-									<div className="flex items-center gap-4">
-										<Badge
-											className={`${getStatusColor(
-												order.isActive === false && order.paymentType === "PREPAYMENTBYCARD" ? "notPayed" : order.status
-											)} text-white`}
-										>
-											{order.isActive === false && order.paymentType === "PREPAYMENTBYCARD" ? "NOT PREPAYED" : order.status}
-										</Badge>
-										<div>
-											<p className="font-bold">
-												Заказ №{order.id}
-											</p>
-											<p className="text-sm text-muted-foreground">
-												{formatDate(order.createdAt)}
-											</p>
+					{user.orders.map((order: Order) => {
+						const notPayed =
+							order.isActive === false &&
+							order.paymentType === "PREPAYMENTBYCARD";
+						const statusConf = getStatusConfig(
+							notPayed ? "notPayed" : order.status
+						);
+
+						return (
+							<Collapsible
+								key={order.id}
+								className="border rounded-lg"
+							>
+								<CollapsibleTrigger asChild>
+									<div className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50">
+										<div className="flex items-center gap-4">
+											<Badge
+												className={`${statusConf.bg} text-white`}
+											>
+												{statusConf.label}
+											</Badge>
+											<div>
+												<p className="font-bold">
+													Заказ №{order.id}
+												</p>
+												<p className="text-sm text-muted-foreground">
+													{formatDate(
+														order.createdAt
+													)}
+												</p>
+											</div>
 										</div>
-									</div>
-									<div className="flex items-center gap-4">
-										{/* <p className="font-medium">
+										<div className="flex items-center gap-4">
+											{/* <p className="font-medium">
 											{formatPrice(order.totalAmount)}
 										</p> */}
-										<ChevronDown className="h-5 w-5 text-muted-foreground" />
-									</div>
-								</div>
-							</CollapsibleTrigger>
-							<CollapsibleContent className="flex flex-col">
-								<Separator />
-								<div className="p-4 space-y-4">
-									<div>
-										<p className="text-sm font-bold mb-2">
-											Товары
-										</p>
-										<div className="space-y-2">
-											{order.items.map((item, index) => (
-												<div
-													key={index}
-													className="flex justify-between border-b gap-1 flex-col pb-2"
-												>
-													<p>
-														{item.product?.name}{" "}
-														<span className="text-muted-foreground">
-															x{item.quantity}
-														</span>
-													</p>
-													<p className="whitespace-nowrap font-semibold">
-														{formatPrice(
-															item.price
-														)}
-													</p>
-												</div>
-											))}
+											<ChevronDown className="h-5 w-5 text-muted-foreground" />
 										</div>
 									</div>
+								</CollapsibleTrigger>
+								<CollapsibleContent className="flex flex-col">
 									<Separator />
-									<div className="flex justify-between font-medium">
-										<p>Итого</p>
-										<p className="font-semibold">{formatPrice(order.totalAmount)}</p>
-									</div>
-									{/* <div className="flex justify-end">
+									<div className="p-4 space-y-4">
+										<div>
+											<p className="text-sm font-bold mb-2">
+												Товары
+											</p>
+											<div className="space-y-2">
+												{order.items.map(
+													(item, index) => (
+														<div
+															key={index}
+															className="flex justify-between border-b gap-1 flex-col pb-2"
+														>
+															<p>
+																{
+																	item.product
+																		?.name
+																}{" "}
+																<span className="text-muted-foreground">
+																	x
+																	{
+																		item.quantity
+																	}
+																</span>
+															</p>
+															<p className="whitespace-nowrap font-semibold">
+																{formatPrice(
+																	item.price
+																)}
+															</p>
+														</div>
+													)
+												)}
+											</div>
+										</div>
+										<Separator />
+										<div className="flex justify-between font-medium">
+											<p>Итого</p>
+											<p className="font-semibold">
+												{formatPrice(order.totalAmount)}
+											</p>
+										</div>
+										{/* <div className="flex justify-end">
 										<Button variant="outline" size="sm">
 											<ExternalLink className="mr-2 h-4 w-4" />
 											Посмотреть детали
 										</Button>
 									</div> */}
-								</div>
-								<Button className="mx-4 mb-4" onClick={() => rePayOrder(order?.id)}>
-									{isProcessing
-										? "Оформляем..."
-										: `Внести предоплату ${formatPrice(
-											Number(import.meta.env.VITE_ORDER_FIX_PRICE)
-										)}`}
-								</Button>
-							</CollapsibleContent>
-						</Collapsible>
-					))}
+									</div>
+									{notPayed && (
+										<Button
+											className="mx-4 mb-4"
+											onClick={() =>
+												rePayOrder(order?.id)
+											}
+										>
+											{isProcessing
+												? "Оформляем..."
+												: `Внести предоплату ${formatPrice(
+														Number(
+															import.meta.env
+																.VITE_ORDER_FIX_PRICE
+														)
+												  )}`}
+										</Button>
+									)}
+								</CollapsibleContent>
+							</Collapsible>
+						);
+					})}
 				</div>
 			</CardContent>
 		</Card>

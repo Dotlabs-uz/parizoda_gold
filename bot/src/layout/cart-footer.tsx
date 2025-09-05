@@ -12,14 +12,21 @@ interface cartFooterProps {
 }
 
 const CartFooter: React.FC<cartFooterProps> = ({ cartElement }) => {
-	const { Item, addToCart, increment, decrement, clearSelected, addToSelected } = useCart();
+	const {
+		Item,
+		addToCart,
+		increment,
+		decrement,
+		clearSelected,
+		addToSelected,
+	} = useCart();
 	const navigate = useNavigate();
 	const cartItem = Item(cartElement.configKey);
 
 	function buyOne(item: CartItem) {
 		clearSelected();
 		addToSelected(item);
-		navigate('/payment');
+		navigate("/payment");
 	}
 
 	return (
@@ -27,7 +34,7 @@ const CartFooter: React.FC<cartFooterProps> = ({ cartElement }) => {
 			<div className="grid grid-cols-2 gap-2 w-full m-auto">
 				{/* Buy Now Button */}
 				<Button
-					className=" h-12 bg-default-btn hover:bg-purple-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+					className="h-12 bg-gold hover:bg-gold-dark text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
 					size="lg"
 					onClick={() => buyOne(cartElement)}
 				>

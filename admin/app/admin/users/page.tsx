@@ -294,7 +294,10 @@ export default async function UsersPage({ searchParams }: any) {
 										users.map((user) => (
 											<TableRow key={user.id}>
 												<TableCell>
-													<div className="flex items-center space-x-3">
+													<Link
+														href={`/admin/users/${user.id}`}
+														className="flex items-center space-x-3"
+													>
 														<Avatar className="h-8 w-8">
 															<AvatarImage
 																src={
@@ -320,7 +323,7 @@ export default async function UsersPage({ searchParams }: any) {
 																ID: {user.id}
 															</div>
 														</div>
-													</div>
+													</Link>
 												</TableCell>
 												<TableCell>
 													<code className="text-sm bg-muted px-1 py-0.5 rounded">

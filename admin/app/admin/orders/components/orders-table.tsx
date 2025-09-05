@@ -30,7 +30,9 @@ import {
 } from "lucide-react";
 import { OrderStatusSelect } from "./order-status-select";
 import { formatDate, formatPrice } from "@/lib/utils";
-import { PaymentType, ProductType, type Order } from "@/app/types";
+import { OrderStatus, PaymentType, ProductType, type Order } from "@/app/types";
+import { updateOrderStatus } from "../actions";
+import { toast } from "sonner";
 
 interface OrdersTableProps {
 	orders: Array<{
@@ -41,10 +43,10 @@ interface OrdersTableProps {
 		paymentType: string;
 		createdAt: Date;
 		updatedAt: Date;
-		user: any;
+		user?: any;
 		items: any;
 	}>;
-	onStatusUpdate?: (orderId: number, newStatus: string) => Promise<void>;
+	userFree?: boolean;
 }
 
 function OrderSeparatorRow({ date, count }: { date: string; count: number }) {
@@ -76,14 +78,16 @@ function OrderRow({
 	order,
 	onStatusChange,
 	disabled,
+	userFree,
 }: {
 	order: Order;
-	onStatusChange: (orderId: number, newStatus: string) => Promise<void>;
+	onStatusChange: (orderId: number, newStatus: OrderStatus) => Promise<void>;
 	disabled: boolean;
+	userFree: boolean;
 }) {
 	const [open, setOpen] = useState(false);
 
-	const getStatusConfig = (status: string) => {
+	const getStatusConfig = (status: OrderStatus) => {
 		switch (status) {
 			case "PENDING":
 				return {
@@ -106,12 +110,19 @@ function OrderRow({
 					text: "text-emerald-800",
 					label: "Доставлен",
 				};
-			default:
+			case "CANCELLED":
 				return {
 					bg: "bg-red-50 border-red-200",
 					dot: "bg-red-500",
 					text: "text-red-800",
 					label: "Отменен",
+				};
+			default:
+				return {
+					bg: "bg-gray-50 border-gray-200",
+					dot: "bg-gray-500",
+					text: "text-gray-800",
+					label: "Неизвестный статус",
 				};
 		}
 	};
@@ -131,6 +142,10 @@ function OrderRow({
 		}
 	};
 
+	const totalWeight = order.items.reduce((sum, item) => {
+		return sum + Number(item.weight) * item.quantity;
+	}, 0);
+
 	return (
 		<>
 			<TableRow className="bg-white hover:bg-slate-50/80 transition-colors border-b border-slate-100">
@@ -139,21 +154,23 @@ function OrderRow({
 						#{order.id}
 					</Badge>
 				</TableCell>
-				<TableCell>
-					<div className="flex items-center gap-3">
-						<div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-							<User className="h-4 w-4 text-blue-600" />
-						</div>
-						<div>
-							<div className="font-medium text-slate-900">
-								{order.user.first_name || "Без имени"}
+				{!userFree && (
+					<TableCell>
+						<div className="flex items-center gap-3">
+							<div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+								<User className="h-4 w-4 text-blue-600" />
 							</div>
-							<div className="text-sm text-slate-500">
-								{order.user.phone || `ID: ${order.userId}`}
+							<div>
+								<div className="font-medium text-slate-900">
+									{order.user.first_name || "Без имени"}
+								</div>
+								<div className="text-sm text-slate-500">
+									{order.user.phone || `ID: ${order.userId}`}
+								</div>
 							</div>
 						</div>
-					</div>
-				</TableCell>
+					</TableCell>
+				)}
 				<TableCell>
 					<div className="flex items-center gap-2">
 						<Package className="h-4 w-4 text-slate-400" />
@@ -167,8 +184,15 @@ function OrderRow({
 						</span>
 					</div>
 				</TableCell>
-				<TableCell className="font-semibold text-slate-900 text-lg">
-					{formatPrice(order.totalAmount)}
+				<TableCell className="font-semibold text-slate-900">
+					<span className="text-lg">
+						{formatPrice(order.totalAmount)} <br />
+					</span>
+					за{" "}
+					<Badge className="bg-blue-500">
+						{totalWeight.toFixed(2)}
+					</Badge>{" "}
+					грамм
 				</TableCell>
 				<TableCell>
 					<div className="flex items-center gap-2">
@@ -246,6 +270,9 @@ function OrderRow({
 												<th className="text-left py-3 px-4 font-semibold text-slate-700">
 													Тип
 												</th>
+												<th className="text-left py-3 px-4 font-semibold text-slate-700">
+													Комплектующие
+												</th>
 												<th className="text-center py-3 px-4 font-semibold text-slate-700">
 													Кол-во
 												</th>
@@ -253,7 +280,7 @@ function OrderRow({
 													Цена
 												</th>
 												<th className="text-right py-3 px-4 font-semibold text-slate-700">
-													Вес
+													Общий вес
 												</th>
 											</tr>
 										</thead>
@@ -279,32 +306,69 @@ function OrderRow({
 														ProductType.SINGLE
 															? "Изделие"
 															: "Комплект"}
-
-														{/* TODO: Доделать показ продуктов в комплекте с размерами изделий */}
-														{/* {item.type ===
-															ProductType.BUNDLE &&
-															item.bundleItems.map(
-																(bi) => (
-																	<div
-																		key={
-																			bi.id
-																		}
-																		className="flex items-center justify-between py-2 px-4 border-b border-slate-200"
-																	>
-																		<span className="font-medium text-slate-900">
-																			{
-																				bi.productId
-																			}
-																		</span>
-																		<span className="text-slate-600">
-																			{
-																				bi.weight
-																			}
-																		</span>
-																	</div>
-																)
-															)} */}
 													</td>
+													{item.type ===
+													ProductType.BUNDLE ? (
+														<td className="mt-2">
+															<ul className="flex flex-col items-start justify-between py-2 px-4 border-b border-slate-200">
+																{item.bundleItems.map(
+																	(
+																		bi: any
+																	) => (
+																		<li
+																			key={
+																				bi.id
+																			}
+																		>
+																			<span className="text-slate-900">
+																				{
+																					bi
+																						.product
+																						.sku
+																				}{" "}
+																				:{" "}
+																			</span>
+																			<Badge
+																				variant="secondary"
+																				className="font-mono text-xs"
+																			>
+																				Размер:{" "}
+																				{
+																					bi
+																						.variant
+																						.size
+																				}{" "}
+																				Вес:{" "}
+																				{
+																					bi
+																						.variant
+																						.weight
+																				}
+																			</Badge>
+																		</li>
+																	)
+																)}
+															</ul>
+														</td>
+													) : (
+														<td>
+															<Badge
+																variant="secondary"
+																className="font-mono text-xs"
+															>
+																Размер:{" "}
+																{
+																	item.variant
+																		?.size
+																}{" "}
+																Вес:{" "}
+																{
+																	item.variant
+																		?.weight
+																}
+															</Badge>
+														</td>
+													)}
 													<td className="py-3 px-4 text-center font-medium text-slate-900">
 														{item.quantity}
 													</td>
@@ -314,7 +378,12 @@ function OrderRow({
 														)}
 													</td>
 													<td className="py-3 px-4 text-right text-slate-600">
-														{item.weight}
+														<Badge className="bg-blue-500">
+															{Number(
+																item.weight
+															).toFixed(2)}
+														</Badge>{" "}
+														гр
 													</td>
 												</tr>
 											))}
@@ -330,21 +399,28 @@ function OrderRow({
 	);
 }
 
-export function OrdersTable({ orders = [], onStatusUpdate }: OrdersTableProps) {
+export function OrdersTable({
+	orders = [],
+	userFree = false,
+}: OrdersTableProps) {
 	const [updatingOrders, setUpdatingOrders] = useState<Set<number>>(
 		new Set()
 	);
 
-	const handleStatusChange = async (orderId: number, newStatus: string) => {
+	const handleStatusChange = async (
+		orderId: number,
+		newStatus: OrderStatus
+	) => {
 		setUpdatingOrders((prev) => new Set(prev).add(orderId));
 
 		try {
-			if (onStatusUpdate) {
-				await onStatusUpdate(orderId, newStatus);
-			}
+			await updateOrderStatus(orderId, newStatus);
 		} catch (error) {
-			console.error("Failed to update order status:", error);
+			toast.error("Failed to update order status:" + error);
 		} finally {
+			toast.success("Success", {
+				description: "Order status updated successfully",
+			});
 			setUpdatingOrders((prev) => {
 				const newSet = new Set(prev);
 				newSet.delete(orderId);
@@ -452,9 +528,11 @@ export function OrdersTable({ orders = [], onStatusUpdate }: OrdersTableProps) {
 									<TableHead className="w-[100px] font-semibold text-slate-700">
 										ID
 									</TableHead>
-									<TableHead className="font-semibold text-slate-700">
-										Клиент
-									</TableHead>
+									{!userFree && (
+										<TableHead className="font-semibold text-slate-700">
+											Клиент
+										</TableHead>
+									)}
 									<TableHead className="font-semibold text-slate-700">
 										Товары
 									</TableHead>
@@ -496,6 +574,7 @@ export function OrdersTable({ orders = [], onStatusUpdate }: OrdersTableProps) {
 											disabled={updatingOrders.has(
 												order.id
 											)}
+											userFree={userFree}
 										/>
 									);
 								})}

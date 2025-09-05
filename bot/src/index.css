@@ -2,9 +2,22 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-
 @theme {
-	--color-default-btn: oklch(55.8% 0.288 302.321);
+	--color-default-btn: #c9a961;
+	--color-default-hover: #b8956b;
+
+	--color-gold: #c9a961;
+	--color-gold-dark: #b8956b;
+	--color-silver: #e8e6e3;
+	--color-emerald: #2d5a4a;
+	--color-emerald-light: #3d6b5a;
+	--color-black-rich: #1a1a1a;
+	--color-gray-text: #6b6b6b;
+
+	--gradient-gold: linear-gradient(135deg, #c9a961, #b8956b);
+	--gradient-emerald: linear-gradient(135deg, #2d5a4a, #3d6b5a);
+	--gradient-black-gold: linear-gradient(135deg, #1a1a1a, #b8956b);
+	--gradient-silver: linear-gradient(135deg, #f5f4f2, #e8e6e3);
 }
 
 @theme inline {
