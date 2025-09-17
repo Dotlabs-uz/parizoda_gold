@@ -26,6 +26,7 @@ export default function SuperadminLogin({}: {}) {
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [timeLeft, setTimeLeft] = useState(0);
+	const [verified, setVerified] = useState(false);
 	const router = useRouter();
 
 	// Таймер обратного отсчета
@@ -80,6 +81,7 @@ export default function SuperadminLogin({}: {}) {
 			});
 
 			if (res.ok) {
+				setVerified(true);
 				router.push("/admin/trusted");
 			} else {
 				const { error } = await res.json();
@@ -127,6 +129,17 @@ export default function SuperadminLogin({}: {}) {
 								"Получить одноразовый код"
 							)}
 						</Button>
+					) : verified ? (
+						<div className="space-y-6 text-center">
+							<p>Ждите, идет редирект...</p>
+							<Button
+								onClick={() => router.push("/admin/trusted")}
+								className="w-full"
+								size="lg"
+							>
+								Перейти вручную
+							</Button>
+						</div>
 					) : (
 						<form onSubmit={handleVerify} className="space-y-6">
 							<div className="space-y-4">

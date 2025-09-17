@@ -36,8 +36,10 @@ export async function POST(req: Request) {
 		name: "otp_token",
 		value: token,
 		httpOnly: true,
+		secure: true, // HTTPS обязателен на проде
+		sameSite: "lax", // хватит, потому что один домен
 		path: "/",
-		maxAge: 300, // 5 minutes
+		maxAge: 300,
 	});
 
 	return response;
