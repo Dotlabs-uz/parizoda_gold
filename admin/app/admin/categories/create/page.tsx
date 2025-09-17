@@ -102,7 +102,7 @@ export default function CreateCategoryPage() {
 			<header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
 				<SidebarTrigger className="-ml-1" />
 				<div className="flex flex-1 items-center gap-2">
-					<Link href="/categories">
+					<Link href="/admin/categories">
 						<Button variant="ghost" size="sm">
 							<ArrowLeft className="h-4 w-4 mr-2" />
 							Back to Categories
