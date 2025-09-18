@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { createOrder } from "./create-order";
-
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
-const JWT_SECRET = process.env.JWT_SECRET!;
+import { formatPrice } from "@/lib/utils";
+import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
 	try {
@@ -30,8 +29,36 @@ export async function POST(req: NextRequest) {
 		const body = await req.json();
 		const order = await createOrder({ userId: auth.payload.userId, body });
 
+		const user = await prisma.user.findUnique({
+			where: { id: order.userId },
+		});
+
+		// Send a message to Telegram bot
+		const message = `Новый заказ получен от ${user?.first_name} ${
+			user?.last_name
+		}!\nID: ${order.id}\nСумма: ${formatPrice(
+			order.totalAmount
+		)} Сум\nСтатус: ${order.status}`;
+
+		const res = await fetch(
+			`https://api.telegram.org/bot${process.env.TG_NOTIFY_BOT_TOKEN}/sendMessage`,
+			{
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					chat_id: process.env.TG_NOTIFY_CHAT_ID,
+					text: message,
+				}),
+			}
+		);
+
+		console.log({ res });
+
 		return NextResponse.json({ data: order }, { status: 201 });
 	} catch (e: any) {
-		return NextResponse.json({ error: e.message ?? "Failed to create order" }, { status: 500 });
+		return NextResponse.json(
+			{ error: e.message ?? "Failed to create order" },
+			{ status: 500 }
+		);
 	}
 }
