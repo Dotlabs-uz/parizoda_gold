@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 			user?.last_name
 		}!\nID: ${order.id}\nСумма: ${formatPrice(
 			order.totalAmount
-		)} Сум\nСтатус: ${order.status}`;
+		)} \nСтатус: ${order.status}`;
 
 		const res = await fetch(
 			`https://api.telegram.org/bot${process.env.TG_NOTIFY_BOT_TOKEN}/sendMessage`,
@@ -51,8 +51,6 @@ export async function POST(req: NextRequest) {
 				}),
 			}
 		);
-
-		console.log({ res });
 
 		return NextResponse.json({ data: order }, { status: 201 });
 	} catch (e: any) {
