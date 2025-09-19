@@ -70,6 +70,8 @@ services:
         MULTICARD_CALBACK_URL: $MULTICARD_CALBACK_URL
         NODE_ENV: production
         FIX_PRICE: $VITE_ORDER_FIX_PRICE
+        TG_NOTIFY_BOT_TOKEN: $TG_NOTIFY_BOT_TOKEN
+        TG_NOTIFY_CHAT_ID: $TG_NOTIFY_CHAT_ID
     restart: always
     environment:
       NODE_ENV: production
@@ -89,6 +91,8 @@ services:
       MULTICARD_STORE_ID: $MULTICARD_STORE_ID
       MULTICARD_CALBACK_URL: $MULTICARD_CALBACK_URL
       FIX_PRICE: $VITE_ORDER_FIX_PRICE
+      TG_NOTIFY_BOT_TOKEN: $TG_NOTIFY_BOT_TOKEN
+      TG_NOTIFY_CHAT_ID: $TG_NOTIFY_CHAT_ID
     labels:
       - traefik.enable=true
       - traefik.http.routers.app.rule=Host(`admin.${HOST}`) && PathPrefix(`/`)
