@@ -88,6 +88,9 @@ export function ProductCard({
 					<p className="text-xs text-muted-foreground line-clamp-1">
 						{description}
 					</p>
+					<p className="font-semibold text-sm mt-2">
+						{sizes && sizes.length > 0 ? `${sizes[0].weight}г` : ""}
+					</p>
 				</CardContent>
 				{type !== ProductType.BUNDLE && (
 					<CardFooter className="p-2 pt-0">
